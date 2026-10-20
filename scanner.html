@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scanner QR E-Patrol Security</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#0c2440;color:#fff;padding:18px}main{max-width:520px;margin:auto}h1{font-size:22px}p{line-height:1.5}#reader{background:#fff;border-radius:12px;overflow:hidden;color:#111}button{border:0;border-radius:10px;padding:14px 18px;background:#0bb5d3;color:#062039;font-weight:bold;font-size:15px;margin:10px 5px 10px 0}#status{padding:12px;border-radius:10px;background:#193b59}</style></head>
+<body><main><h1>🛡️ E-Patrol Security</h1><p>Scanner QR Checkpoint — PLN UP2D Lampung. Izinkan akses kamera belakang ketika diminta.</p><div id="reader"></div><p id="status">Tekan Mulai Scanner untuk mengaktifkan kamera.</p><button id="start">Mulai Scanner</button><button id="stop">Hentikan</button></main>
+<script>
+const params=new URLSearchParams(location.search),scanId=params.get('scan_id')||'';
+const status=document.getElementById('status');let qr=null;
+async function stop(){if(!qr)return;try{if(qr.isScanning)await qr.stop();await qr.clear()}catch(e){}qr=null}
+async function start(){await stop();if(!window.isSecureContext){status.textContent='Halaman harus melalui HTTPS.';return}try{qr=new Html5Qrcode('reader');await qr.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:240}},async code=>{status.textContent='QR terdeteksi: '+code;await stop();if(window.opener){window.opener.postMessage({type:'EPATROL_SCANNED_QR',code,scanId},'*');status.textContent='QR telah dikirim ke E-Patrol. Silakan kembali ke tab aplikasi.'}else{status.textContent='QR: '+code+' — Salin kode ini ke checkpoint E-Patrol.'}},()=>{});status.textContent='Arahkan kamera ke QR checkpoint.'}catch(err){status.textContent='Gagal membuka kamera: '+(err?.message||err)+'. Periksa izin Kamera situs ini.'}}
+document.getElementById('start').onclick=start;document.getElementById('stop').onclick=stop;
+</script></body></html>
